@@ -2,10 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
-	"time"
 )
 
 type Result struct {
@@ -25,18 +23,13 @@ func fetchHedged(ctx context.Context, url string, ch chan<- Result) {
 		return
 	}
 
-	client := &http.Client{Timeout: 15 * time.Second}
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		ch <- Result{URL: url, Err: err}
 		return
 	}
 	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		ch <- Result{URL: url, Err: fmt.Errorf("bad status: %d", resp.StatusCode)}
-		return
-	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

@@ -23,6 +23,10 @@ func main() {
 		select {
 		case res := <-resultChan:
 			if res.Err != nil {
+				if ctx.Err() != nil {
+					fmt.Fprintf(os.Stderr, "Ошибка: Превышен общий таймаут ожидания (%v)\n", cfg.Timeout)
+					os.Exit(228)
+				}
 				errorsCount++
 				continue
 			}
@@ -41,9 +45,14 @@ func main() {
 			os.Exit(0)
 
 		case <-ctx.Done():
-			fmt.Fprintf(os.Stderr, "Ошибка: Превышен общий таймаут ожидания (%v)\n", 15)
+			fmt.Fprintf(os.Stderr, "Ошибка: Превышен общий таймаут ожидания (%v)\n", cfg.Timeout)
 			os.Exit(228)
 		}
+	}
+
+	if ctx.Err() != nil {
+		fmt.Fprintf(os.Stderr, "Ошибка: Превышен общий таймаут ожидания (%v)\n", cfg.Timeout)
+		os.Exit(228)
 	}
 
 	if errorsCount == len(cfg.URLs) {
